@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Hashable, Sequence
+from typing import Hashable, Sequence, Any
 from copy import deepcopy
 from enum import Enum
 from math import atan2, degrees
-from pathlib import Path as FilePath
-from typing import Any
-
-import dill
 
 DEFAULT_TURN_ANGLES: tuple[float, float, float, float] = (30, 60, 120, 150)
 
@@ -135,7 +131,7 @@ class TurnType(Enum):
         return TurnType.U_TURN
 
 
-class Turn(dict):
+class Turn(dict[Any, Any]):
     """Turn from one incoming link to one outgoing link."""
 
     def __init__(
@@ -147,24 +143,24 @@ class Turn(dict):
     ) -> None:
         """Create a turn with incoming and outgoing link identifiers."""
         super().__init__(**kwargs)
-        dict.__setitem__(self, "idx", idx)
-        dict.__setitem__(self, "in_link", in_link)
-        dict.__setitem__(self, "out_link", out_link)
+        dict.__setitem__(self, "idx", idx)  # pyright: ignore[reportUnknownMemberType]
+        dict.__setitem__(self, "in_link", in_link)  # pyright: ignore[reportUnknownMemberType]
+        dict.__setitem__(self, "out_link", out_link)  # pyright: ignore[reportUnknownMemberType]
 
     @property
     def idx(self) -> Hashable:
         """Turn identifier."""
-        return dict.__getitem__(self, "idx")
+        return dict.__getitem__(self, "idx")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
 
     @property
     def in_link(self) -> Hashable:
         """Incoming link identifier."""
-        return dict.__getitem__(self, "in_link")
+        return dict.__getitem__(self, "in_link")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
 
     @property
     def out_link(self) -> Hashable:
         """Outgoing link identifier."""
-        return dict.__getitem__(self, "out_link")
+        return dict.__getitem__(self, "out_link")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
 
     @staticmethod
     def classify_turn(
@@ -175,16 +171,6 @@ class Turn(dict):
         """Classify the angle between an incoming and outgoing geometry."""
         return TurnType.classify_turn(in_edge_geometry, out_edge_geometry, angles=angles)
 
-    def save(self, filename: str | FilePath) -> None:
-        """Serialize the turn to ``filename`` using dill."""
-        with open(filename, "wb") as file:
-            dill.dump(self, file, dill.HIGHEST_PROTOCOL)
-
-    @staticmethod
-    def load(filename: str | FilePath) -> Turn:
-        """Load a serialized turn from ``filename``."""
-        with open(filename, "rb") as file:
-            return dill.load(file)
 
     def copy(self) -> Turn:
         """Return a deep copy of the turn."""

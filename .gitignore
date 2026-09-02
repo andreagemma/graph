@@ -27,3 +27,5 @@ Thumbs.db
 
 # Local scratch outputs
 test_output.csv
+
+.AGENT.md

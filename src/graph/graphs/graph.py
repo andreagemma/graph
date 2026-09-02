@@ -64,7 +64,9 @@ class Graph(dict[Any, Any]):
     def save(self, filename: str | FilePath) -> None: 
         """Serialize the graph to ``filename`` using dill."""
         try:
+
             import dill  # pyright: ignore[reportMissingTypeStubs]
+
             with open(filename, "wb") as file:
                 dill.dump(self, file, dill.HIGHEST_PROTOCOL)  # pyright: ignore[reportUnknownMemberType]
         except ImportError as e:
@@ -74,7 +76,9 @@ class Graph(dict[Any, Any]):
     def load(filename: str | FilePath) -> Graph:
         """Load a serialized graph from ``filename``."""
         try:
+
             import dill  # pyright: ignore[reportMissingTypeStubs]
+
             with open(filename, "rb") as file:
                 return dill.load(file) # pyright: ignore[reportUnknownMemberType]
         except ImportError as e:

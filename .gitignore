@@ -29,3 +29,4 @@ Thumbs.db
 test_output.csv
 
 .AGENT.md
+quality_tests.sh

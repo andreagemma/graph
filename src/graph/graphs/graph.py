@@ -80,7 +80,7 @@ class Graph(dict[Any, Any]):
             import dill  # pyright: ignore[reportMissingTypeStubs]
 
             with open(filename, "rb") as file:
-                return dill.load(file) # pyright: ignore[reportUnknownMemberType]
+                return dill.load(file)  # pyright: ignore[reportUnknownMemberType]
         except ImportError as e:
             raise ImportError("dill is required for loading the graph.") from e
 

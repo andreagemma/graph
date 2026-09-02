@@ -10,7 +10,7 @@ class Node(dict[Any, Any]):
     def __init__(self, idx: Hashable, **kwargs: Any) -> None:
         """Create a node with an identifier and optional extra attributes."""
         super().__init__(**kwargs)
-        dict.__setitem__(self, "idx", idx) # pyright: ignore[reportUnknownMemberType]
+        dict.__setitem__(self, "idx", idx)  # pyright: ignore[reportUnknownMemberType]
 
     @property
     def idx(self) -> Hashable:

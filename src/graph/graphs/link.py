@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from typing import Hashable, Any
+from collections.abc import Hashable
 from copy import deepcopy
+from typing import Any
 
 
 class Link(dict[Any, Any]):

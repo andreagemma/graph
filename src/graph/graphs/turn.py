@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import Hashable, Sequence, Any
+from collections.abc import Hashable, Sequence
 from copy import deepcopy
 from enum import Enum
 from math import atan2, degrees
+from typing import Any
 
 DEFAULT_TURN_ANGLES: tuple[float, float, float, float] = (30, 60, 120, 150)
 

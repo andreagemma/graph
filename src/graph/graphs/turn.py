@@ -170,8 +170,7 @@ class Turn(dict[Any, Any]):
     ) -> TurnType | None:
         """Classify the angle between an incoming and outgoing geometry."""
         return TurnType.classify_turn(in_edge_geometry, out_edge_geometry, angles=angles)
-
-
+    
     def copy(self) -> Turn:
         """Return a deep copy of the turn."""
         return deepcopy(self)

@@ -20,6 +20,7 @@ from .turn import Turn
 
 Numeric = int | float
 
+
 class Graph(dict[Any, Any]):
     """Graph structure used to manage nodes, directed links, and turns."""
 
@@ -36,10 +37,10 @@ class Graph(dict[Any, Any]):
         self["links"] = {}
         self["nodes"] = {}
         self["turns"] = {}
-        self["t0"] = t0 
-        self["total_time"] = total_time 
-        self["delta_t"] = delta_t 
-        self["num_intervals"] = int(total_time // delta_t) 
+        self["t0"] = t0
+        self["total_time"] = total_time
+        self["delta_t"] = delta_t
+        self["num_intervals"] = int(total_time // delta_t)
 
     @property
     def delta_t(self) -> float | int:
@@ -61,10 +62,9 @@ class Graph(dict[Any, Any]):
         """Number of time intervals in the graph horizon."""
         return self["num_intervals"]
 
-    def save(self, filename: str | FilePath) -> None: 
+    def save(self, filename: str | FilePath) -> None:
         """Serialize the graph to ``filename`` using dill."""
         try:
-
             import dill  # pyright: ignore[reportMissingTypeStubs]
 
             with open(filename, "wb") as file:
@@ -76,7 +76,6 @@ class Graph(dict[Any, Any]):
     def load(filename: str | FilePath) -> Graph:
         """Load a serialized graph from ``filename``."""
         try:
-
             import dill  # pyright: ignore[reportMissingTypeStubs]
 
             with open(filename, "rb") as file:

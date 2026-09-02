@@ -6,8 +6,6 @@ from copy import deepcopy
 from pathlib import Path as FilePath
 from typing import Any
 
-import dill
-
 from .action_policy import ActionPolicy
 from .exceptions import (
     ExistingLinkError,
@@ -22,8 +20,7 @@ from .turn import Turn
 
 Numeric = int | float
 
-
-class Graph(dict):
+class Graph(dict[Any, Any]):
     """Graph structure used to manage nodes, directed links, and turns."""
 
     def __init__(
@@ -36,44 +33,52 @@ class Graph(dict):
         """Create an empty graph with a time discretization."""
         super().__init__()
         self.update(**kwargs)
-        dict.__setitem__(self, "links", {})
-        dict.__setitem__(self, "nodes", {})
-        dict.__setitem__(self, "turns", {})
-        dict.__setitem__(self, "t0", t0)
-        dict.__setitem__(self, "total_time", total_time)
-        dict.__setitem__(self, "delta_t", delta_t)
-        dict.__setitem__(self, "num_intervals", int(total_time // delta_t))
+        self["links"] = {}
+        self["nodes"] = {}
+        self["turns"] = {}
+        self["t0"] = t0 
+        self["total_time"] = total_time 
+        self["delta_t"] = delta_t 
+        self["num_intervals"] = int(total_time // delta_t) 
 
     @property
     def delta_t(self) -> float | int:
         """Duration of each time interval."""
-        return dict.__getitem__(self, "delta_t")
+        return self["delta_t"]
 
     @property
     def t0(self) -> float | int:
         """Base time used by time-dependent attributes."""
-        return dict.__getitem__(self, "t0")
+        return self["t0"]
 
     @property
     def total_time(self) -> float | int:
         """Total modelled time horizon."""
-        return dict.__getitem__(self, "total_time")
+        return self["total_time"]
 
     @property
     def num_intervals(self) -> int:
         """Number of time intervals in the graph horizon."""
-        return dict.__getitem__(self, "num_intervals")
+        return self["num_intervals"]
 
-    def save(self, filename: str | FilePath) -> None:
+    def save(self, filename: str | FilePath) -> None: 
         """Serialize the graph to ``filename`` using dill."""
-        with open(filename, "wb") as file:
-            dill.dump(self, file, dill.HIGHEST_PROTOCOL)
+        try:
+            import dill  # pyright: ignore[reportMissingTypeStubs]
+            with open(filename, "wb") as file:
+                dill.dump(self, file, dill.HIGHEST_PROTOCOL)  # pyright: ignore[reportUnknownMemberType]
+        except ImportError as e:
+            raise ImportError("dill is required for saving the graph.") from e
 
     @staticmethod
     def load(filename: str | FilePath) -> Graph:
         """Load a serialized graph from ``filename``."""
-        with open(filename, "rb") as file:
-            return dill.load(file)
+        try:
+            import dill  # pyright: ignore[reportMissingTypeStubs]
+            with open(filename, "rb") as file:
+                return dill.load(file) # pyright: ignore[reportUnknownMemberType]
+        except ImportError as e:
+            raise ImportError("dill is required for loading the graph.") from e
 
     def copy(self) -> Graph:
         """Return a deep copy of the graph."""
@@ -97,7 +102,7 @@ class Graph(dict):
         if not self._handle_missing_node(j, "End", on_missing_node):
             return None
 
-        links = dict.__getitem__(self, "links")
+        links = self["links"]
         if idx in links:
             if on_existing == ActionPolicy.RAISE:
                 raise ExistingLinkError(f"Link with id {idx} already exists.")
@@ -107,7 +112,7 @@ class Graph(dict):
                 return links[idx]
 
         link = Link(idx=idx, i=i, j=j, **kwargs)
-        dict.__setitem__(links, idx, link)
+        links[idx] = link
         return link
 
     def _handle_missing_node(
@@ -116,7 +121,7 @@ class Graph(dict):
         role: str,
         policy: ActionPolicy,
     ) -> bool:
-        nodes = dict.__getitem__(self, "nodes")
+        nodes = self["nodes"]
         if idx in nodes:
             return True
         if policy == ActionPolicy.RAISE:
@@ -136,7 +141,7 @@ class Graph(dict):
         **kwargs: Any,
     ) -> Node:
         """Add a node to the graph."""
-        nodes = dict.__getitem__(self, "nodes")
+        nodes = self["nodes"]
         if idx in nodes:
             if on_existing == ActionPolicy.RAISE:
                 raise ExistingNodeError(f"Node with id {idx} already exists.")
@@ -146,7 +151,7 @@ class Graph(dict):
                 return nodes[idx]
 
         node = Node(idx=idx, **kwargs)
-        dict.__setitem__(nodes, idx, node)
+        nodes[idx] = node
         return node
 
     def add_turn(
@@ -167,7 +172,7 @@ class Graph(dict):
         if not self._handle_missing_link(out_link, "Outgoing", on_missing_link):
             return None
 
-        turns = dict.__getitem__(self, "turns")
+        turns = self["turns"]
         if idx in turns:
             if on_existing == ActionPolicy.RAISE:
                 raise ExistingTurnError(f"Turn with id {idx} already exists.")
@@ -177,7 +182,7 @@ class Graph(dict):
                 return turns[idx]
 
         turn = Turn(idx=idx, in_link=in_link, out_link=out_link, **kwargs)
-        dict.__setitem__(turns, idx, turn)
+        turns[idx] = turn
         return turn
 
     def _handle_missing_link(
@@ -186,7 +191,7 @@ class Graph(dict):
         role: str,
         policy: ActionPolicy,
     ) -> bool:
-        links = dict.__getitem__(self, "links")
+        links = self["links"]
         if idx in links:
             return True
         if policy == ActionPolicy.RAISE:
@@ -199,15 +204,15 @@ class Graph(dict):
 
     def get_all_links(self) -> Generator[Link]:
         """Yield all links in insertion order."""
-        yield from dict.__getitem__(self, "links").values()
+        yield from self["links"].values()
 
     def get_all_nodes(self) -> Generator[Node]:
         """Yield all nodes in insertion order."""
-        yield from dict.__getitem__(self, "nodes").values()
+        yield from self["nodes"].values()
 
     def get_all_turns(self) -> Generator[Turn]:
         """Yield all turns in insertion order."""
-        yield from dict.__getitem__(self, "turns").values()
+        yield from self["turns"].values()
 
     def apply_links(self, fn: Callable[[Link], Any] | None = None) -> None:
         """Apply ``fn`` to every link."""
@@ -242,25 +247,25 @@ class Graph(dict):
         total_time = self.total_time if new_total_time is None else new_total_time
         delta_t = self.delta_t if new_delta_t is None else new_delta_t
 
-        dict.__setitem__(self, "total_time", total_time)
-        dict.__setitem__(self, "delta_t", delta_t)
-        dict.__setitem__(self, "num_intervals", int(total_time // delta_t))
+        self["total_time"] = total_time
+        self["delta_t"] = delta_t
+        self["num_intervals"] = int(total_time // delta_t)
 
         for element in (*self.get_all_links(), *self.get_all_turns()):
-            dict.__setitem__(element, "total_time", total_time)
-            dict.__setitem__(element, "delta_t", delta_t)
+            element["total_time"] = total_time
+            element["delta_t"] = delta_t
 
     def get_link(self, idx: Hashable) -> Link | None:
         """Return a link by identifier, or ``None`` when missing."""
-        return dict.__getitem__(self, "links").get(idx)
+        return self["links"].get(idx)
 
     def get_node(self, idx: Hashable) -> Node | None:
         """Return a node by identifier, or ``None`` when missing."""
-        return dict.__getitem__(self, "nodes").get(idx)
+        return self["nodes"].get(idx)
 
     def get_turn(self, idx: Hashable) -> Turn | None:
         """Return a turn by identifier, or ``None`` when missing."""
-        return dict.__getitem__(self, "turns").get(idx)
+        return self["turns"].get(idx)
 
     def remove_link(self, idx: Hashable, cascade: bool = False) -> None:
         """Remove a link by identifier."""
@@ -271,7 +276,7 @@ class Graph(dict):
                 if turn.in_link == idx or turn.out_link == idx
             ]
             self.remove_turns(turns_to_remove)
-        dict.__getitem__(self, "links").pop(idx, None)
+        self["links"].pop(idx, None)
 
     def remove_links(self, idx: Iterable[Hashable], cascade: bool = False) -> None:
         """Remove multiple links by identifier."""
@@ -284,7 +289,7 @@ class Graph(dict):
             ]
             self.remove_turns(turns_to_remove)
         for link_idx in link_ids:
-            dict.__getitem__(self, "links").pop(link_idx, None)
+            self["links"].pop(link_idx, None)
 
     def remove_node(self, idx: Hashable, cascade: bool = False) -> None:
         """Remove a node by identifier."""
@@ -293,7 +298,7 @@ class Graph(dict):
                 link.idx for link in self.get_all_links() if link.i == idx or link.j == idx
             ]
             self.remove_links(links_to_remove, cascade=True)
-        dict.__getitem__(self, "nodes").pop(idx, None)
+        self["nodes"].pop(idx, None)
 
     def remove_nodes(self, idx: Iterable[Hashable], cascade: bool = False) -> None:
         """Remove multiple nodes by identifier."""
@@ -307,16 +312,16 @@ class Graph(dict):
             self.remove_links(links_to_remove, cascade=True)
 
         for node_idx in node_ids:
-            dict.__getitem__(self, "nodes").pop(node_idx, None)
+            self["nodes"].pop(node_idx, None)
 
     def remove_turn(self, idx: Hashable) -> None:
         """Remove a turn by identifier."""
-        dict.__getitem__(self, "turns").pop(idx, None)
+        self["turns"].pop(idx, None)
 
     def remove_turns(self, idx: Iterable[Hashable]) -> None:
         """Remove multiple turns by identifier."""
         for turn_idx in set(idx):
-            dict.__getitem__(self, "turns").pop(turn_idx, None)
+            self["turns"].pop(turn_idx, None)
 
     def get_node_neighbors(
         self,

@@ -144,24 +144,24 @@ class Turn(dict[Any, Any]):
     ) -> None:
         """Create a turn with incoming and outgoing link identifiers."""
         super().__init__(**kwargs)
-        dict.__setitem__(self, "idx", idx)  # pyright: ignore[reportUnknownMemberType]
-        dict.__setitem__(self, "in_link", in_link)  # pyright: ignore[reportUnknownMemberType]
-        dict.__setitem__(self, "out_link", out_link)  # pyright: ignore[reportUnknownMemberType]
+        self["idx"] = idx
+        self["in_link"] = in_link
+        self["out_link"] = out_link
 
     @property
     def idx(self) -> Hashable:
         """Turn identifier."""
-        return dict.__getitem__(self, "idx")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+        return self["idx"]
 
     @property
     def in_link(self) -> Hashable:
         """Incoming link identifier."""
-        return dict.__getitem__(self, "in_link")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+        return self["in_link"]
 
     @property
     def out_link(self) -> Hashable:
         """Outgoing link identifier."""
-        return dict.__getitem__(self, "out_link")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+        return self["out_link"]
 
     @staticmethod
     def classify_turn(

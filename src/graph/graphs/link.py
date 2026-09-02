@@ -11,24 +11,24 @@ class Link(dict[Any, Any]):
     def __init__(self, idx: Hashable, i: Hashable, j: Hashable, **kwargs: Any) -> None:
         """Create a link with an identifier, start node, and end node."""
         super().__init__(**kwargs)
-        dict.__setitem__(self, "idx", idx)  # pyright: ignore[reportUnknownMemberType]
-        dict.__setitem__(self, "i", i)  # pyright: ignore[reportUnknownMemberType]
-        dict.__setitem__(self, "j", j)  # pyright: ignore[reportUnknownMemberType]
+        self["idx"] = idx
+        self["i"] = i
+        self["j"] = j
 
     @property
     def idx(self) -> Hashable:
         """Link identifier."""
-        return dict.__getitem__(self, "idx")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+        return self["idx"]
 
     @property
     def i(self) -> Hashable:
         """Start node identifier."""
-        return dict.__getitem__(self, "i")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+        return self["i"]
 
     @property
     def j(self) -> Hashable:
         """End node identifier."""
-        return dict.__getitem__(self, "j")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+        return self["j"]
 
     def copy(self) -> Link:
         """Return a deep copy of the link."""

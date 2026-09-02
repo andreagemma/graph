@@ -20,7 +20,7 @@ from collections.abc import Hashable, Iterable
 from heapq import heappop as pop
 from heapq import heappush as push
 from itertools import count
-from typing import Any
+from typing import Any, cast
 
 from ..graphs.graph import Graph
 from ..graphs.link import Link
@@ -290,7 +290,7 @@ class TimeDependentLinkBasedShortestPath:
         except TypeError:
             pass
         if isinstance(targets, Iterable) and not isinstance(targets, str | bytes):
-            return set(targets)
+            return set(cast(Iterable[Hashable], targets))
         return {targets}
 
     def _time_index(self, time_value: float | int) -> int:

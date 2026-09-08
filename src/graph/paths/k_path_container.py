@@ -29,10 +29,10 @@ class KPathContainer(PathContainer):
     ) -> None:
         """Merge another path collection into this k-path container."""
         if isinstance(to_add, Path):
-            self.add_path(to_add, k=to_add.get("k") if override_k else None, **kwargs) # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
-        elif isinstance(to_add, PathContainer): # pyright: ignore[reportUnnecessaryIsInstance]
+            self.add_path(to_add, k=to_add.get("k") if override_k else None, **kwargs)  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
+        elif isinstance(to_add, PathContainer):  # pyright: ignore[reportUnnecessaryIsInstance]
             for path in to_add.all_paths(**kwargs):
-                self.add_path(path, k=path.get("k") if override_k else None) # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
+                self.add_path(path, k=path.get("k") if override_k else None)  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
         else:
             msg = f"merge is not implemented for {type(to_add)!r}"
             raise NotImplementedError(msg)
@@ -69,7 +69,7 @@ class KPathContainer(PathContainer):
 
     def k_paths(self, **kwargs: Any) -> int:
         """Return the largest stored k index, or ``-1`` when empty."""
-        return max((int(path.get("k", 0)) for path in self.all_paths(**kwargs)), default=-1) # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
+        return max((int(path.get("k", 0)) for path in self.all_paths(**kwargs)), default=-1)  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
 
     def counts_tot_links(self, **kwargs: Any) -> int:
         """Count the total number of link occurrences in all matching paths."""

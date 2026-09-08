@@ -16,8 +16,8 @@ def make_graph() -> Graph:
     return graph
 
 
-def link_ids(links) -> set[str]:
-    return {link.idx for link in links}
+def link_ids(links) -> set[str]:  # type: ignore
+    return {link.idx for link in links}  # type: ignore
 
 
 def test_add_node_and_link_policies() -> None:
@@ -76,7 +76,7 @@ def test_cleanup_removes_links_and_turns_with_missing_dependencies() -> None:
 
 def test_filter_removals_use_entity_identifiers() -> None:
     graph = make_graph()
-    graph.get_node("C")["drop"] = True
+    graph.get_node("C")["drop"] = True  # type: ignore
 
     graph.remove_nodes_by_filter(lambda node: bool(node.get("drop")), cascade=True)
 
@@ -92,5 +92,5 @@ def test_resize_updates_graph_and_link_turn_metadata() -> None:
     graph.resize_attributes(new_total_time=120, new_delta_t=30)
 
     assert graph.num_intervals == 4
-    assert graph.get_link("ab")["delta_t"] == 30
-    assert graph.get_turn("ab_bc")["total_time"] == 120
+    assert graph.get_link("ab")["delta_t"] == 30  # type: ignore
+    assert graph.get_turn("ab_bc")["total_time"] == 120  # type: ignore

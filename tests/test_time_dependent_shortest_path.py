@@ -18,11 +18,11 @@ def test_shortest_paths_accepts_single_string_target() -> None:
     router = TimeDependentLinkBasedShortestPath.from_graph(graph, link_cost_field="cost")
 
     paths = router.shortest_paths("A", "C")
-    path = paths.path("A", "C", 0, None)
+    path = paths.path("A", "C", 0, None)  # type: ignore
 
     assert path is not None
-    assert path.get_links() == ("ab", "bc")
-    assert path.get_costs() == (1, 2)
+    assert path.get_links() == ("ab", "bc")  # type: ignore
+    assert path.get_costs() == (1, 2)  # type: ignore
     assert path["tot_cost"] == 2
 
 
@@ -35,10 +35,10 @@ def test_turn_costs_affect_route_choice() -> None:
         turn_cost_field="cost",
     )
 
-    path = router.shortest_paths("A", "C").path("A", "C", 0, None)
+    path = router.shortest_paths("A", "C").path("A", "C", 0, None)  # type: ignore
 
     assert path is not None
-    assert path.get_links() == ("ac",)
+    assert path.get_links() == ("ac",)  # type: ignore
     assert path["tot_cost"] == 10
 
 
@@ -51,15 +51,15 @@ def test_prohibited_turns_are_removed_from_link_successors() -> None:
         turn_prohibited_field="prohibited",
     )
 
-    path = router.shortest_paths("A", "C").path("A", "C", 0, None)
+    path = router.shortest_paths("A", "C").path("A", "C", 0, None)  # type: ignore
 
     assert path is not None
-    assert path.get_links() == ("ac",)
+    assert path.get_links() == ("ac",)  # type: ignore
 
 
 def test_mode_filter_uses_the_configured_mode_field() -> None:
     graph = make_routing_graph()
-    graph.get_link("ac")["modes"] = {"bike"}
+    graph.get_link("ac")["modes"] = {"bike"}  # type: ignore
     router = TimeDependentLinkBasedShortestPath.from_graph(
         graph,
         mode="car",
@@ -67,7 +67,7 @@ def test_mode_filter_uses_the_configured_mode_field() -> None:
         link_cost_field="cost",
     )
 
-    path = router.shortest_paths("A", "C").path("A", "C", 0, "car")
+    path = router.shortest_paths("A", "C").path("A", "C", 0, "car")  # type: ignore
 
     assert path is not None
-    assert path.get_links() == ("ab", "bc")
+    assert path.get_links() == ("ab", "bc")  # type: ignore

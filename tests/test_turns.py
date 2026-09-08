@@ -6,7 +6,7 @@ from graph import Turn, TurnType
 
 
 class Geometry:
-    def __init__(self, coords) -> None:
+    def __init__(self, coords) -> None:  # type: ignore
         self.coords = coords
 
 

@@ -27,7 +27,8 @@ classifiers = [
   "Typing :: Typed"
 ]
 dependencies = [
-  "dill>=0.3.8"
+  "dill>=0.3.8",
+  "numpy>=1.24"
 ]
 
 [project.optional-dependencies]

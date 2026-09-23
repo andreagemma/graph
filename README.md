@@ -110,14 +110,29 @@ turn fields.
 - `Graph.add_link(idx, i, j, on_existing=..., on_missing_node=..., **kwargs)`
 - `Graph.add_turn(idx, in_link, out_link, on_existing=..., on_missing_link=..., **kwargs)`
 - `Graph.get_node(idx)`, `Graph.get_link(idx)`, `Graph.get_turn(idx)`
+- `Graph.get_link_by_nodes(i, j)`, `Graph.has_link_by_nodes(i, j)`
 - `Graph.remove_node(idx, cascade=False)`, `Graph.remove_link(idx, cascade=False)`
 - `Graph.remove_redundants()`
+- `Graph.get_intervals()`, `Graph.create_array_attribute(value, value_total_time=None, value_delta_t=None)`
 - `Path(source, target, t_start, links=None, costs=None, mode=None, ...)`
 - `PathList()`
 - `KPathList()`
 - `TurnType.parse(value)` and `TurnType.classify_turn(...)`
 - `TimeDependentLinkBasedShortestPath.from_graph(graph, ...)`
 - `TimeDependentLinkBasedShortestPath.shortest_paths(source, targets=None, t_start=0)`
+
+### Time-Series Helpers
+
+`Graph` can resize list/tuple/array attributes attached to nodes, links, and
+turns when the time horizon changes.
+
+- If only `total_time` changes with the same `delta_t`, sequences are extended
+    using the last value or truncated to the new length.
+- If `delta_t` changes, values are linearly interpolated to the new number of
+    intervals.
+- `get_intervals()` returns interval start times.
+- `create_array_attribute(...)` normalizes scalar or sequence inputs to the
+    requested horizon length.
 
 ## Development
 

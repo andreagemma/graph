@@ -15,10 +15,13 @@ Main methods:
 - `add_link(idx, i, j, on_existing=..., on_missing_node=..., **kwargs)`
 - `add_turn(idx, in_link, out_link, on_existing=..., on_missing_link=..., **kwargs)`
 - `get_node(idx)`, `get_link(idx)`, `get_turn(idx)`
+- `get_link_by_nodes(i, j)`, `has_link_by_nodes(i, j)`
 - `get_all_nodes()`, `get_all_links()`, `get_all_turns()`
 - `remove_node(idx, cascade=False)`, `remove_link(idx, cascade=False)`
 - `remove_redundants()`
 - `resize_attributes(new_total_time=None, new_delta_t=None)`
+- `get_intervals()`
+- `create_array_attribute(value, value_total_time=None, value_delta_t=None)`
 
 ## `Path`, `PathList`, and `KPathList`
 

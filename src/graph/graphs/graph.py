@@ -6,6 +6,8 @@ from copy import deepcopy
 from pathlib import Path as FilePath
 from typing import Any
 
+import numpy as np
+
 from .action_policy import ActionPolicy
 from .exceptions import (
     ExistingLinkError,
@@ -35,6 +37,7 @@ class Graph(dict[Any, Any]):
         super().__init__()
         self.update(**kwargs)
         self["links"] = {}
+        self["links_ij"] = {}
         self["nodes"] = {}
         self["turns"] = {}
         self["t0"] = t0
@@ -114,8 +117,12 @@ class Graph(dict[Any, Any]):
             if on_existing in {ActionPolicy.IGNORE, ActionPolicy.SKIP}:
                 return links[idx]
 
+            old_link = links[idx]
+            self["links_ij"].pop((old_link.i, old_link.j), None)
+
         link = Link(idx=idx, i=i, j=j, **kwargs)
         links[idx] = link
+        self["links_ij"][(i, j)] = link
         return link
 
     def _handle_missing_node(
@@ -130,7 +137,7 @@ class Graph(dict[Any, Any]):
         if policy == ActionPolicy.RAISE:
             raise MissingNodeError(f"{role} node with id {idx} does not exist.")
         if policy == ActionPolicy.WARN:
-            warnings.warn(f"{role} node with id {idx} does not exist.", stacklevel=3)
+            warnings.warn(f"{role} node with id {idx} does not exist. Skipping.", stacklevel=3)
         elif policy == ActionPolicy.SKIP:
             return False
         elif policy == ActionPolicy.REPLACE:
@@ -209,6 +216,14 @@ class Graph(dict[Any, Any]):
         """Yield all links in insertion order."""
         yield from self["links"].values()
 
+    def get_link_by_nodes(self, i: Hashable, j: Hashable) -> Link | None:
+        """Get a link by its from_node and to_node."""
+        return self["links_ij"].get((i, j), None)
+
+    def has_link_by_nodes(self, i: Hashable, j: Hashable) -> bool:
+        """Check if a link exists between two nodes."""
+        return (i, j) in self["links_ij"]
+
     def get_all_nodes(self) -> Generator[Node]:
         """Yield all nodes in insertion order."""
         yield from self["nodes"].values()
@@ -247,16 +262,136 @@ class Graph(dict[Any, Any]):
         new_delta_t: Numeric | None = None,
     ) -> None:
         """Resize the graph time horizon metadata."""
-        total_time = self.total_time if new_total_time is None else new_total_time
-        delta_t = self.delta_t if new_delta_t is None else new_delta_t
+        old_total_time = self["total_time"]
+        old_delta_t = self["delta_t"]
+        total_time = old_total_time if new_total_time is None else new_total_time
+        delta_t = old_delta_t if new_delta_t is None else new_delta_t
+
+        new_length = int(total_time // delta_t)
+
+        if total_time == old_total_time and delta_t == old_delta_t:
+            return
+        elif total_time != old_total_time and delta_t == old_delta_t:
+            for element in (*self.get_all_links(), *self.get_all_nodes(), *self.get_all_turns()):
+                for key in element:
+                    value = element[key]
+                    if isinstance(value, (tuple, list, np.ndarray)):
+                        original_length = int(len(value))
+                        if original_length == 0:
+                            continue
+
+                        if isinstance(value, tuple):
+                            new_tvalue = list(value)
+                            if total_time > old_total_time:
+                                new_tvalue.extend([new_tvalue[-1]] * (new_length - original_length))
+                            elif total_time < old_total_time:
+                                new_tvalue = new_tvalue[:new_length]
+                            element[key] = tuple(new_tvalue)
+                        elif isinstance(value, list):
+                            new_lvalue = list(value)
+                            if total_time > old_total_time:
+                                new_lvalue.extend([new_lvalue[-1]] * (new_length - original_length))
+                            elif total_time < old_total_time:
+                                new_lvalue = new_lvalue[:new_length]
+                            element[key] = new_lvalue
+                        else:
+                            new_array: np.ndarray = np.array(value)
+                            if total_time > old_total_time:
+                                new_array = np.concatenate(
+                                    [
+                                        new_array,
+                                        np.full((new_length - original_length,), new_array[-1]),
+                                    ]
+                                )
+                            elif total_time < old_total_time:
+                                new_array = new_array[:new_length]
+                            element[key] = new_array
+        else:
+            for element in (*self.get_all_links(), *self.get_all_nodes(), *self.get_all_turns()):
+                for key in element:
+                    value = element[key]
+                    if isinstance(value, (tuple, list, np.ndarray)):
+                        old_length = len(value)
+                        if old_length != new_length:
+                            if old_length == 0 or new_length == 0:
+                                if isinstance(value, tuple):
+                                    element[key] = tuple()
+                                elif isinstance(value, list):
+                                    element[key] = []
+                                else:
+                                    element[key] = np.array([])
+                                continue
+
+                            if isinstance(value, tuple):
+                                element[key] = tuple(
+                                    np.interp(
+                                        np.linspace(0, 1, new_length),
+                                        np.linspace(0, 1, old_length),
+                                        value,
+                                    )
+                                )
+                            elif isinstance(value, list):
+                                element[key] = list(
+                                    np.interp(
+                                        np.linspace(0, 1, new_length),
+                                        np.linspace(0, 1, old_length),
+                                        value,
+                                    )
+                                )
+                            else:  # np.ndarray
+                                element[key] = np.interp(
+                                    np.linspace(0, 1, new_length),
+                                    np.linspace(0, 1, old_length),
+                                    value,
+                                )
 
         self["total_time"] = total_time
         self["delta_t"] = delta_t
-        self["num_intervals"] = int(total_time // delta_t)
+        self["num_intervals"] = new_length
 
         for element in (*self.get_all_links(), *self.get_all_turns()):
             element["total_time"] = total_time
             element["delta_t"] = delta_t
+
+    def get_intervals(self) -> list[int]:
+        """Return simulation interval start times based on current horizon metadata."""
+        return (
+            (np.arange(int(self["num_intervals"])) * self["delta_t"] + self["t0"])
+            .round()
+            .astype(int)
+            .tolist()
+        )
+
+    def create_array_attribute(
+        self,
+        value: Any,
+        value_total_time: float | int | None = None,
+        value_delta_t: float | int | None = None,
+    ) -> list[Any]:
+        """Create or resize a time-series attribute to match a target horizon."""
+        if not isinstance(value, (tuple, list, np.ndarray)):
+            value = [value]
+
+        if value_total_time is None:
+            value_total_time = self["total_time"]
+        if value_delta_t is None:
+            value_delta_t = self["delta_t"]
+
+        new_length = int(value_total_time // value_delta_t)
+        old_length = len(value)
+
+        if old_length == 0:
+            return []
+
+        if old_length != new_length:
+            value = list(
+                np.interp(
+                    np.linspace(0, 1, new_length),
+                    np.linspace(0, 1, old_length),
+                    value,
+                )
+            )
+        return list(value)
 
     def get_link(self, idx: Hashable) -> Link | None:
         """Return a link by identifier, or ``None`` when missing."""
@@ -279,7 +414,9 @@ class Graph(dict[Any, Any]):
                 if turn.in_link == idx or turn.out_link == idx
             ]
             self.remove_turns(turns_to_remove)
-        self["links"].pop(idx, None)
+        link = self["links"].pop(idx, None)
+        if link is not None:
+            self["links_ij"].pop((link.i, link.j), None)
 
     def remove_links(self, idx: Iterable[Hashable], cascade: bool = False) -> None:
         """Remove multiple links by identifier."""
@@ -292,7 +429,9 @@ class Graph(dict[Any, Any]):
             ]
             self.remove_turns(turns_to_remove)
         for link_idx in link_ids:
-            self["links"].pop(link_idx, None)
+            link = self["links"].pop(link_idx, None)
+            if link is not None:
+                self["links_ij"].pop((link.i, link.j), None)
 
     def remove_node(self, idx: Hashable, cascade: bool = False) -> None:
         """Remove a node by identifier."""

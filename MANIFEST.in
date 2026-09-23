@@ -1,5 +1,0 @@
-include CHANGELOG.md
-include THIRD_PARTY_NOTICES.md
-recursive-include licenses/third_party *.tsv
-recursive-include licenses/third_party/packages *
-recursive-include docs *.md

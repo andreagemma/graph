@@ -131,6 +131,8 @@ class Graph(dict[Any, Any]):
         role: str,
         policy: ActionPolicy,
     ) -> bool:
+        # Internal helper: handle missing node.
+        """Internal helper: handle missing node."""
         nodes = self["nodes"]
         if idx in nodes:
             return True
@@ -201,6 +203,8 @@ class Graph(dict[Any, Any]):
         role: str,
         policy: ActionPolicy,
     ) -> bool:
+        # Internal helper: handle missing link.
+        """Internal helper: handle missing link."""
         links = self["links"]
         if idx in links:
             return True

@@ -77,6 +77,16 @@ class TimeDependentLinkBasedShortestPath:
         router.mode = mode
 
         def has_mode(element: Node | Link | Turn, field: str | None) -> bool:
+            """Has mode.
+
+            Args:
+                element: TODO describe element.
+                field: TODO describe field.
+
+            Returns:
+                TODO describe return value.
+
+            """
             if mode is None or field is None:
                 return True
             available_modes = element.get(field)
@@ -91,6 +101,17 @@ class TimeDependentLinkBasedShortestPath:
             field: str | None,
             default: float | int = 0,
         ) -> CostProfile:
+            """Expand cost.
+
+            Args:
+                element: TODO describe element.
+                field: TODO describe field.
+                default: TODO describe default.
+
+            Returns:
+                TODO describe return value.
+
+            """
             if field is None or field not in element:
                 return tuple([float(default)] * router.n_intervals)
 
@@ -112,6 +133,15 @@ class TimeDependentLinkBasedShortestPath:
             return values[: router.n_intervals]
 
         def is_turn_prohibited(turn: Turn) -> bool:
+            """Is turn prohibited.
+
+            Args:
+                turn: TODO describe turn.
+
+            Returns:
+                TODO describe return value.
+
+            """
             if turn_prohibited_field is None:
                 return False
             return bool(turn.get(turn_prohibited_field, False))
@@ -282,6 +312,8 @@ class TimeDependentLinkBasedShortestPath:
         self,
         targets: Iterable[Hashable] | Hashable | None,
     ) -> set[Hashable]:
+        # Internal helper: normalize targets.
+        """Internal helper: normalize targets."""
         if targets is None:
             return {node[1] for node in self.nodes}
         try:
@@ -294,6 +326,8 @@ class TimeDependentLinkBasedShortestPath:
         return {targets}
 
     def _time_index(self, time_value: float | int) -> int:
+        # Internal helper: time index.
+        """Internal helper: time index."""
         if self.n_intervals <= 0:
             return 0
         return max(0, min(int((time_value - self.t0) // self.delta_t), self.n_intervals - 1))

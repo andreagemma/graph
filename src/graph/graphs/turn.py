@@ -40,6 +40,8 @@ class TurnType(Enum):
 
     @staticmethod
     def _coerce(turn: str | TurnType) -> TurnType:
+        # Internal helper: coerce.
+        """Internal helper: coerce."""
         parsed = TurnType.parse(turn)
         if parsed is None:
             msg = f"unknown turn type: {turn!r}"

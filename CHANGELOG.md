@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Bumped package/build version from `0.1.4` to `0.1.5`.
+
 ## 0.1.4 - 2026-09-23
 
 - Added link lookup by node pair with `get_link_by_nodes(i, j)` and `has_link_by_nodes(i, j)`.

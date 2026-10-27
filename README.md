@@ -111,8 +111,11 @@ turn fields.
 - `Graph.add_turn(idx, in_link, out_link, on_existing=..., on_missing_link=..., **kwargs)`
 - `Graph.get_node(idx)`, `Graph.get_link(idx)`, `Graph.get_turn(idx)`
 - `Graph.get_link_by_nodes(i, j)`, `Graph.has_link_by_nodes(i, j)`
+- `Graph.get_turn_by_links(in_link, out_link)`
+- `Graph.get_sample_node(...)`, `Graph.get_sample_link(...)`, `Graph.get_sample_turn(...)`
 - `Graph.remove_node(idx, cascade=False)`, `Graph.remove_link(idx, cascade=False)`
 - `Graph.remove_redundants()`
+- `Graph.merge(other, copy=False, inplace=True)`, `Graph.cut_time_slice(...)`
 - `Graph.get_intervals()`, `Graph.create_array_attribute(value, value_total_time=None, value_delta_t=None)`
 - `Path(source, target, t_start, links=None, costs=None, mode=None, ...)`
 - `PathList()`
@@ -177,3 +180,5 @@ content.
 ## License
 
 GA Graph is distributed under the MIT License. See [LICENSE](LICENSE).
+Third-party dependency license texts and versions are listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -42,6 +42,6 @@ def test_k_path_merge_can_preserve_existing_k() -> None:
     paths.merge(path, override_k=True)
 
     assert paths.path("A", "C", 0, "car", k=2) is path
-    assert list(paths.paths("A", "C", 0, "car")) == [path]
-    assert paths.n_paths() == 1
+    assert list(paths.paths("A", "C", 0, "car")) == [None, None, path]
+    assert paths.n_paths() == 3
     assert paths.k_paths() == 3

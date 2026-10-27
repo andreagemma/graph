@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import random
+
 import pytest
 
 from graph import ActionPolicy, ExistingNodeError, Graph, MissingNodeError
@@ -61,12 +63,8 @@ def test_neighbors_honor_incoming_and_outgoing_switches() -> None:
     graph = make_graph()
 
     assert link_ids(graph.get_node_neighbors("A")) == {"ab", "ca"}
-    assert link_ids(
-        graph.get_node_neighbors("A", include_in_links=True, include_out_links=False)
-    ) == {"ca"}
-    assert link_ids(
-        graph.get_node_neighbors("A", include_in_links=False, include_out_links=True)
-    ) == {"ab"}
+    assert link_ids(graph.get_node_neighbors("A", include_in_links=True, include_out_links=False)) == {"ca"}
+    assert link_ids(graph.get_node_neighbors("A", include_in_links=False, include_out_links=True)) == {"ab"}
     assert graph.get_node_neighbors("A", include_in_links=False, include_out_links=False) == []
 
 
@@ -136,3 +134,111 @@ def test_time_helpers_build_intervals_and_resample_values() -> None:
     assert len(resized) == 4
     assert resized[0] == pytest.approx(0.0)
     assert resized[-1] == pytest.approx(30.0)
+
+
+def test_time_horizon_preserves_fractional_values() -> None:
+    graph = Graph(t0=2.5, total_time=7.5, delta_t=2.5)
+
+    assert graph.t0 == 2.5
+    assert graph.tstart == 2.5
+    assert graph.tend == 10.0
+    assert graph.total_time == 7.5
+    assert graph.delta_t == 2.5
+    assert graph.num_intervals == 3
+
+    sliced = graph.cut_time_slice(5.0, 7.5, inplace=False)
+    assert sliced.total_time == 2.5
+    assert sliced.num_intervals == 1
+
+
+def test_turn_pair_index_tracks_add_replace_and_removal() -> None:
+    graph = make_graph()
+
+    first = graph.get_turn("ab_bc")
+    assert graph.get_turn_by_links("ab", "bc") is first
+    assert graph.get_turn_by_links_or_error("ab", "bc") is first
+
+    with pytest.warns(UserWarning, match="already exists"):
+        replacement = graph.add_turn(
+            "ab_bc",
+            "bc",
+            "ca",
+            on_existing=ActionPolicy.WARN,
+        )
+    assert graph.get_turn_by_links("ab", "bc") is None
+    assert graph.get_turn_by_links("bc", "ca") is replacement
+
+    graph.remove_turn("ab_bc")
+    assert graph.get_turn_by_links("bc", "ca") is None
+
+
+def test_turn_pair_index_restores_duplicate_pair_and_supports_old_graphs() -> None:
+    graph = make_graph()
+    graph.add_turn("second", "ab", "bc")
+
+    graph.remove_turn("second")
+    assert graph.get_turn_by_links("ab", "bc") is graph.get_turn("ab_bc")
+
+    del graph["turns_ij"]
+    assert graph.get_turn_by_links("ab", "bc") is graph.get_turn("ab_bc")
+
+
+def test_sample_methods_filter_and_preserve_global_random_state() -> None:
+    graph = make_graph()
+    random.seed(123)
+    expected_next = random.random()
+    random.seed(123)
+
+    assert graph.get_sample_link(lambda link: link.idx == "bc") is graph.get_link("bc")
+    assert graph.get_sample_node(lambda node: node.idx == "B") is graph.get_node("B")
+    assert graph.get_sample_turn(lambda turn: turn.idx == "ab_bc") is graph.get_turn("ab_bc")
+    assert graph.get_sample_node(random=True, random_state=5) is graph.get_sample_node(random=True, random_state=5)
+    assert random.random() == expected_next
+    assert graph.get_sample_node(lambda node: node.idx == "missing") is None
+
+
+def test_merge_adjacent_graphs_preserves_source_and_indexes_turns() -> None:
+    first = Graph(total_time=30, delta_t=15)
+    first.add_node("A")
+    first.add_node("B")
+    first.add_link("ab", "A", "B")
+
+    second = Graph(t0=30, total_time=30, delta_t=15)
+    second.add_node("A")
+    second.add_node("B")
+    second.add_node("C")
+    second.add_link("ab", "A", "B")
+    second.add_link("bc", "B", "C")
+    second.add_turn("ab_bc", "ab", "bc")
+
+    merged = first.merge(second, inplace=False)
+
+    assert merged is not first
+    assert merged.total_time == 60
+    assert merged.n_nodes() == 3
+    assert merged.n_links() == 2
+    assert merged.get_turn_by_links("ab", "bc") is merged.get_turn("ab_bc")
+    assert first.total_time == 30
+    assert second.total_time == 30
+
+
+def test_merge_updates_turn_pair_index_when_topology_changes() -> None:
+    first = Graph(total_time=30, delta_t=15)
+    for node in ("A", "B", "C"):
+        first.add_node(node)
+    first.add_link("ab", "A", "B")
+    first.add_link("bc", "B", "C")
+    first.add_turn("turn", "ab", "bc")
+
+    second = Graph(t0=30, total_time=30, delta_t=15)
+    for node in ("A", "B", "C"):
+        second.add_node(node)
+    second.add_link("ab", "A", "B")
+    second.add_link("bc", "B", "C")
+    second.add_link("ca", "C", "A")
+    second.add_turn("turn", "bc", "ca")
+
+    merged = first.merge(second, inplace=False)
+
+    assert merged.get_turn_by_links("ab", "bc") is None
+    assert merged.get_turn_by_links("bc", "ca") is merged.get_turn("turn")

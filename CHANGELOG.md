@@ -2,7 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.1.6 - Unreleased
+
+- Added graph merge, time-slicing, sample-selection, and turn-pair lookup helpers.
+- Kept turn-pair indexes synchronized when turns are replaced or removed, and
+  added lazy index reconstruction for older serialized graphs.
+- Preserved fractional time-horizon values and prevented random sampling from
+  changing Python's global random state.
+- Expanded Graph API documentation and tests; refreshed third-party license
+  inventory and packaged license texts.
+- Bumped package/build version from `0.1.5` to `0.1.6`.
+
+## 0.1.5
 
 - Bumped package/build version from `0.1.4` to `0.1.5`.
 

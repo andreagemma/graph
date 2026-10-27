@@ -9,9 +9,14 @@ description = "Lightweight graph, turn, path, and time-dependent routing utiliti
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = [
+  "LICENSE",
+  "THIRD_PARTY_NOTICES.md",
+  "licenses/third_party/summary.tsv",
+  "licenses/third_party/packages/*/*"
+]
 authors = [
-  { name = "GA Graph contributors" }
+  { name = "Andrea Gemma" }
 ]
 keywords = ["ga-graph", "graph", "routing", "shortest-path", "transport-network"]
 classifiers = [
@@ -27,7 +32,7 @@ classifiers = [
   "Typing :: Typed"
 ]
 dependencies = [
-  "dill>=0.3.8",
+  "ga-serializer",
   "numpy>=1.24"
 ]
 
@@ -71,7 +76,7 @@ branch = true
 source = ["graph"]
 
 [tool.ruff]
-line-length = 100
+line-length = 140
 target-version = "py310"
 
 [tool.ruff.lint]

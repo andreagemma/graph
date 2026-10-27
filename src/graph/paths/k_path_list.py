@@ -10,27 +10,29 @@ Numeric = int | float
 
 
 class KPathList(KPathContainer):
-    """Dictionary-backed collection with multiple k-ranked paths per key."""
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Create an empty k-path list."""
+    def __init__(self, **kwargs: Any):
         super().__init__()
-        self.update(kwargs)
+        self.update(**kwargs)
         self["type"] = self.__class__.__name__
-        self["paths"] = {}
+        if "paths" not in self:
+            self["paths"] = {}
+        if "ull" not in self:
+            self["ull"] = {}
 
-    def add_path(self, to_add: Path, k: int | None = None, **kwargs: Any) -> None:
-        """Add a path at the next or selected k position."""
-        del kwargs
+    @property
+    def _paths(self) -> dict[tuple[Hashable, Hashable, Numeric, str | None], list[Path]]:
+        return self["paths"]  # type: ignore
+
+    def add_path(self, to_add: Path, k: int | None = None, **kwargs: Any):
+        to_add["links"] = self["ull"].setdefault(to_add["links"], to_add["links"])  # type: ignore
         key = to_add.key()
-        paths = self["paths"].setdefault(key, [])
+        links: list[Path | None] = self._paths.setdefault(key, [])  # type: ignore
         if k is None:
-            paths.append(to_add)
-            to_add["k"] = len(paths) - 1
+            links.append(to_add)  # type: ignore
+            to_add["k"] = len(links) - 1
         else:
-            if len(paths) < k + 1:
-                paths.extend([None] * (k + 1 - len(paths)))
-            paths[k] = to_add
+            links.extend([None] * (k + 1 - len(links))) if len(links) < k + 1 else links  # type: ignore
+            links[k] = to_add
             to_add["k"] = k
 
     def get_sources(
@@ -40,17 +42,13 @@ class KPathList(KPathContainer):
         mode: str | None = None,
         **kwargs: Any,
     ) -> tuple[Hashable, ...]:
-        """Return source labels matching the optional filters."""
-        del kwargs
         return tuple(
-            dict.fromkeys(
-                source
-                for source, candidate_target, candidate_time, candidate_mode in (
-                    path.key() for path in self.all_paths()
-                )
-                if (target is None or candidate_target == target)
-                and (t_start is None or candidate_time == t_start)
-                and (mode is None or candidate_mode == mode)
+            set(
+                [
+                    s
+                    for (s, t, ts, m) in map(lambda x: x.key(), self.all_paths())
+                    if (t_start is None or ts == t_start) and (target is None or t == target) and (mode is None or m == mode)
+                ]
             )
         )
 
@@ -61,17 +59,13 @@ class KPathList(KPathContainer):
         mode: str | None = None,
         **kwargs: Any,
     ) -> tuple[Hashable, ...]:
-        """Return target labels matching the optional filters."""
-        del kwargs
         return tuple(
-            dict.fromkeys(
-                target
-                for candidate_source, target, candidate_time, candidate_mode in (
-                    path.key() for path in self.all_paths()
-                )
-                if (source is None or candidate_source == source)
-                and (t_start is None or candidate_time == t_start)
-                and (mode is None or candidate_mode == mode)
+            set(
+                [
+                    t
+                    for (s, t, ts, m) in map(lambda x: x.key(), self.all_paths())
+                    if (source is None or s == source) and (t_start is None or ts == t_start) and (mode is None or m == mode)
+                ]
             )
         )
 
@@ -82,20 +76,35 @@ class KPathList(KPathContainer):
         mode: str | None = None,
         **kwargs: Any,
     ) -> tuple[Numeric, ...]:
-        """Return departure times matching the optional filters."""
-        del kwargs
         return tuple(
-            dict.fromkeys(
-                t_start
-                for candidate_source, candidate_target, t_start, candidate_mode in (
-                    path.key() for path in self.all_paths()
-                )
-                if (source is None or candidate_source == source)
-                and (target is None or candidate_target == target)
-                and (mode is None or candidate_mode == mode)
+            set(
+                [
+                    ts
+                    for (s, t, ts, m) in map(lambda x: x.key(), self.all_paths())
+                    if (source is None or s == source) and (target is None or t == target) and (mode is None or m == mode)
+                ]
             )
         )
 
+    def get_ts(
+        self,
+        source: Hashable | None = None,
+        target: Hashable | None = None,
+        mode: str | None = None,
+        **kwargs: Any,
+    ) -> tuple[Numeric, ...]:
+        return tuple(
+            set(
+                [
+                    p["t"]
+                    for p in self.all_paths()
+                    if (source is None or p["source"] == source) and
+                      (target is None or p["target"] == target) and 
+                      (mode is None or p["mode"] == mode)
+                ]
+            )
+        )
+    
     def get_modes(
         self,
         source: Hashable | None = None,
@@ -103,33 +112,37 @@ class KPathList(KPathContainer):
         t_start: Numeric | None = None,
         **kwargs: Any,
     ) -> tuple[Hashable, ...]:
-        """Return mode labels matching the optional filters."""
-        del kwargs
         return tuple(
-            dict.fromkeys(
-                mode
-                for candidate_source, candidate_target, candidate_time, mode in (
-                    path.key() for path in self.all_paths()
-                )
-                if (source is None or candidate_source == source)
-                and (target is None or candidate_target == target)
-                and (t_start is None or candidate_time == t_start)
+            set(
+                [
+                    m
+                    for (s, t, ts, m) in map(lambda x: x.key(), self.all_paths())
+                    if (source is None or s == source) and (t_start is None or ts == t_start) and (target is None or t == target)
+                ]
             )
         )
 
     def paths(
         self,
-        source: Hashable,
-        target: Hashable,
-        t_start: Numeric,
+        source: Hashable | None = None,
+        target: Hashable | None = None,
+        t_start: Numeric | None = None,
         mode: str | None = None,
         **kwargs: Any,
     ) -> Generator[Path, None, None]:
-        """Yield all k-ranked paths matching one canonical key."""
-        del kwargs
-        for path in self["paths"].get((source, target, t_start, mode), []):
-            if path is not None:
-                yield path
+        if mode is None or source is None or target is None or t_start is None:
+            for p in self.all_paths():
+                if source is not None and p.source != source:
+                    continue
+                if target is not None and p.target != target:
+                    continue
+                if t_start is not None and p.t_start != t_start:
+                    continue
+                if mode is not None and p.mode != mode:
+                    continue
+                yield p
+        else:
+            yield from self._paths.get((source, target, t_start, mode), [])
 
     def path(
         self,
@@ -140,39 +153,44 @@ class KPathList(KPathContainer):
         k: int = 0,
         **kwargs: Any,
     ) -> Path | None:
-        """Return one path by canonical key and k position."""
-        del kwargs
-        paths = self["paths"].get((source, target, t_start, mode))
+        assert t_start is not None, "t_start must be specified"
+        paths = self._paths.get((source, target, t_start, mode))
         if paths and len(paths) > k:
             return paths[k]
-        return None
+        else:
+            return None
 
-    def all_paths(self, **kwargs: Any) -> Generator[Path, None, None]:
-        """Yield all non-empty stored paths in insertion order."""
-        del kwargs
-        for paths in self["paths"].values():
-            for path in paths:
-                if path is not None:
-                    yield path
+    def all_paths(self, **kwargs: Any) -> Generator[Path]:
+        for paths in self["paths"].values():  # type: ignore
+            yield from paths
 
-    def all_kpaths(
-        self,
-        **kwargs: Any,
-    ) -> Generator[tuple[tuple[Hashable, Hashable, Numeric, str | None], list[Path]], None, None]:
-        """Yield each canonical key with its non-empty path list."""
-        del kwargs
-        for key, paths in self["paths"].items():
-            yield key, [path for path in paths if path is not None]
+    def all_kpaths(self, **kwargs: Any) -> Generator[tuple[tuple[Hashable, Hashable, Numeric, str | None], list[Path]]]:
+        yield from self["paths"].items()  # type: ignore
 
+
+    @property
+    def empty(self) -> bool:
+        if len(self._paths) == 0:
+            return True
+        return all(len(paths) == 0 for paths in self._paths.values())
+    
     def n_paths(self, **kwargs: Any) -> int:
-        """Count all non-empty stored paths."""
-        del kwargs
-        return sum(1 for _ in self.all_paths())
+        n = 0
+        for paths in self._paths.values():
+            n += len(paths)
+        return n
+
+    def n_unique_paths(self, **kwargs: Any) -> int:
+        return len(self["ull"])  # type: ignore
 
     def k_paths(self, **kwargs: Any) -> int:
-        """Return the maximum number of k slots stored for any key."""
-        del kwargs
-        return max((len(paths) for paths in self["paths"].values()), default=0)
+        k = 0
+        for paths in self._paths.values():
+            k = max(k, len(paths))
+        return k
+
+    def is_empty(self) -> bool:
+        return len(self._paths) == 0
 
 
 __all__ = ["KPathList"]

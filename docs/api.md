@@ -16,12 +16,25 @@ Main methods:
 - `add_turn(idx, in_link, out_link, on_existing=..., on_missing_link=..., **kwargs)`
 - `get_node(idx)`, `get_link(idx)`, `get_turn(idx)`
 - `get_link_by_nodes(i, j)`, `has_link_by_nodes(i, j)`
+- `get_turn_by_links(in_link, out_link)`, `get_turn_by_links_or_error(...)`
 - `get_all_nodes()`, `get_all_links()`, `get_all_turns()`
+- `get_sample_node(...)`, `get_sample_link(...)`, `get_sample_turn(...)`
 - `remove_node(idx, cascade=False)`, `remove_link(idx, cascade=False)`
 - `remove_redundants()`
+- `merge(other, copy=False, inplace=True)`
+- `cut_time_slice(time_start=None, time_end=None, rebase=None, inplace=True)`
+- `time_index(time_value)`
 - `resize_attributes(new_total_time=None, new_delta_t=None)`
 - `get_intervals()`
 - `create_array_attribute(value, value_total_time=None, value_delta_t=None)`
+
+Sampling helpers accept an optional predicate and can either return the first
+match or choose a reproducible random match with `random=True` and a
+`random_state`. Turn lookups are indexed by `(in_link, out_link)` and remain
+consistent as turns are replaced or removed.
+
+`merge` appends a compatible time horizon, and `cut_time_slice` selects a
+portion of one. Graph time origins and durations may be integers or floats.
 
 ## `Path`, `PathList`, and `KPathList`
 

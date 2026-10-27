@@ -27,6 +27,7 @@ from ..graphs.link import Link
 from ..graphs.node import Node
 from ..graphs.turn import Turn
 from ..paths import Path, PathContainer, PathList
+from ..utils import time_index
 
 CostProfile = tuple[float, ...]
 NodeRow = tuple[int, Hashable, CostProfile]
@@ -146,11 +147,7 @@ class TimeDependentLinkBasedShortestPath:
                 return False
             return bool(turn.get(turn_prohibited_field, False))
 
-        node_data = (
-            (node.idx, expand_cost(node, node_cost_field))
-            for node in graph.get_all_nodes()
-            if has_mode(node, node_mode_field)
-        )
+        node_data = ((node.idx, expand_cost(node, node_cost_field)) for node in graph.get_all_nodes() if has_mode(node, node_mode_field))
         router.nodes = tuple((dense_id, *node) for dense_id, node in enumerate(node_data))
         router._nodes_idx = {node[1]: dense_id for dense_id, node in enumerate(router.nodes)}
 
@@ -162,9 +159,7 @@ class TimeDependentLinkBasedShortestPath:
                 expand_cost(link, link_cost_field),
             )
             for link in graph.get_all_links()
-            if link.i in router._nodes_idx
-            and link.j in router._nodes_idx
-            and has_mode(link, link_mode_field)
+            if link.i in router._nodes_idx and link.j in router._nodes_idx and has_mode(link, link_mode_field)
         )
         router.links = tuple((dense_id, *link) for dense_id, link in enumerate(link_data))
         router._links_idx = {link[1]: dense_id for dense_id, link in enumerate(router.links)}
@@ -172,11 +167,7 @@ class TimeDependentLinkBasedShortestPath:
         turn_rows: list[TurnRow] = []
         prohibited_pairs: set[tuple[int, int]] = set()
         for turn in graph.get_all_turns():
-            if (
-                turn.in_link not in router._links_idx
-                or turn.out_link not in router._links_idx
-                or not has_mode(turn, turn_mode_field)
-            ):
+            if turn.in_link not in router._links_idx or turn.out_link not in router._links_idx or not has_mode(turn, turn_mode_field):
                 continue
 
             pair = (router._links_idx[turn.in_link], router._links_idx[turn.out_link])
@@ -215,9 +206,7 @@ class TimeDependentLinkBasedShortestPath:
 
         for incoming_link_id, outgoing_link_id in router.turns_prohibited:
             if incoming_link_id in links_fws:
-                links_fws[incoming_link_id] = {
-                    link for link in links_fws[incoming_link_id] if link[0] != outgoing_link_id
-                }
+                links_fws[incoming_link_id] = {link for link in links_fws[incoming_link_id] if link[0] != outgoing_link_id}
         router.links_fws = links_fws
 
         return router
@@ -249,7 +238,7 @@ class TimeDependentLinkBasedShortestPath:
 
         for start_link in self.fws.get(source_id, set()):
             start_link_id, start_link_idx, _, _, link_costs = start_link
-            cost_index = self._time_index(departure_time)
+            cost_index = time_index(t0=self.t0, delta_t=self.delta_t, n_intervals=self.n_intervals, time_value=departure_time)
             arrival_time = departure_time + link_costs[cost_index]
             paths_costs[start_link_id] = arrival_time
             paths_links[start_link_id] = [start_link_idx]
@@ -270,22 +259,26 @@ class TimeDependentLinkBasedShortestPath:
 
             for outgoing_link in self.links_fws.get(incoming_link_id, set()):
                 outgoing_link_id, outgoing_link_idx, _, _, outgoing_link_costs = outgoing_link
-                cost_index = self._time_index(current_time)
+                cost_index = time_index(t0=self.t0, delta_t=self.delta_t, n_intervals=self.n_intervals, time_value=current_time)
                 node_costs = self.nodes[current_node][2]
                 transition_cost = node_costs[cost_index]
+                if transition_cost == float("inf"):
+                    continue
 
                 for turn in self.turns.get((incoming_link_id, outgoing_link_id), set()):
                     transition_cost += turn[4][cost_index]
+                if transition_cost == float("inf"):
+                    continue
 
                 outgoing_departure_time = current_time + transition_cost
-                link_cost_index = self._time_index(outgoing_departure_time)
+                link_cost_index = time_index(
+                    t0=self.t0, delta_t=self.delta_t, n_intervals=self.n_intervals, time_value=outgoing_departure_time
+                )
                 candidate_time = outgoing_departure_time + outgoing_link_costs[link_cost_index]
 
                 if candidate_time < paths_costs[outgoing_link_id]:
                     paths_costs[outgoing_link_id] = candidate_time
-                    paths_links[outgoing_link_id] = paths_links[incoming_link_id] + [
-                        outgoing_link_idx
-                    ]
+                    paths_links[outgoing_link_id] = paths_links[incoming_link_id] + [outgoing_link_idx]
                     push(queue, (candidate_time, next(tie_breaker), outgoing_link))
 
         for target_id in target_ids:
@@ -324,13 +317,5 @@ class TimeDependentLinkBasedShortestPath:
         if isinstance(targets, Iterable) and not isinstance(targets, str | bytes):
             return set(cast(Iterable[Hashable], targets))
         return {targets}
-
-    def _time_index(self, time_value: float | int) -> int:
-        # Internal helper: time index.
-        """Internal helper: time index."""
-        if self.n_intervals <= 0:
-            return 0
-        return max(0, min(int((time_value - self.t0) // self.delta_t), self.n_intervals - 1))
-
-
+    
 __all__ = ["TimeDependentLinkBasedShortestPath"]

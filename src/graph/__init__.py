@@ -14,7 +14,8 @@ from .graphs import (
     Turn,
     TurnType,
 )
-from .paths import KPathContainer, KPathList, Path, PathContainer, PathList
+from .paths import KPathContainer, KPathList, MultimodalPaths, Path, PathContainer, PathList
+from .utils import make_inside_checker, multiline_to_line, time_index
 
 __all__ = [
     "ActionPolicy",
@@ -25,6 +26,7 @@ __all__ = [
     "GraphError",
     "KPathContainer",
     "KPathList",
+    "MultimodalPaths",
     "Link",
     "MissingLinkError",
     "MissingNodeError",
@@ -35,5 +37,8 @@ __all__ = [
     "TimeDependentLinkBasedShortestPath",
     "Turn",
     "TurnType",
+    "make_inside_checker",
+    "time_index",
+    "multiline_to_line",
     "__version__",
 ]

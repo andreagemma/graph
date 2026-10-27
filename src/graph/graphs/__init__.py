@@ -7,7 +7,7 @@ from .exceptions import (
     MissingLinkError,
     MissingNodeError,
 )
-from .graph import Graph
+from .graph import Graph, time_index
 from .link import Link
 from .node import Node
 from .turn import Turn, TurnType
@@ -25,4 +25,5 @@ __all__ = [
     "Node",
     "Turn",
     "TurnType",
+    "time_index",
 ]

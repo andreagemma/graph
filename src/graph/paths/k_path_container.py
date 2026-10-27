@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Generator, Hashable
 from typing import Any
 
+import pandas as pd
+
 from .path import Path
 from .path_container import PathContainer
 
@@ -17,13 +19,13 @@ class KPathContainer(PathContainer):
         super().__init__(**kwargs)
         self["type"] = self.__class__.__name__
 
-    def add_path(self, to_add: Path, k: int | None = None, **kwargs: Any) -> None:
+    def add_path(self, to_add: Path, k: int | None = None, **kwargs: dict[str, Any]) -> None:
         """Add one path at an optional k position."""
         raise NotImplementedError
 
     def merge(
         self,
-        to_add: Path | PathContainer | KPathContainer,
+        to_add: Path | PathContainer | KPathContainer | list[Path],
         override_k: bool = False,
         **kwargs: Any,
     ) -> None:
@@ -32,6 +34,9 @@ class KPathContainer(PathContainer):
             self.add_path(to_add, k=to_add.get("k") if override_k else None, **kwargs)  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
         elif isinstance(to_add, PathContainer):  # pyright: ignore[reportUnnecessaryIsInstance]
             for path in to_add.all_paths(**kwargs):
+                self.add_path(path, k=path.get("k") if override_k else None)  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
+        elif isinstance(to_add, list):  # pyright: ignore[reportUnnecessaryIsInstance]
+            for path in to_add:
                 self.add_path(path, k=path.get("k") if override_k else None)  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
         else:
             msg = f"merge is not implemented for {type(to_add)!r}"
@@ -78,6 +83,23 @@ class KPathContainer(PathContainer):
     def counts_link(self, id_link: Hashable, **kwargs: Any) -> int:
         """Count occurrences of ``id_link`` in all matching paths."""
         return sum(path.counts_link(id_link) for path in self.all_paths(**kwargs))
+
+    @classmethod
+    def from_pandas(cls, df: pd.DataFrame | dict[str, Any] | list[dict[str, Any]], **kwargs: dict[str, Any]) -> KPathContainer:
+        ret = cls()
+        _df: pd.DataFrame = df if isinstance(df, pd.DataFrame) else pd.DataFrame(df)
+
+        grps = _df.groupby(["source", "target", "t_start", "mode"])
+        for _, index in grps.groups.items():
+            group: pd.DataFrame = _df.loc[index, :].sort_values(by="tot_cost")
+            for k, (_, row) in enumerate(group.iterrows()):
+                args = {str(k): v for k, v in dict(row.to_dict()).items()}
+                args.pop("k")
+                args.pop("geometry")
+                args.pop("geom")
+                path = Path(**args)
+                ret.add_path(path, k=k, **kwargs)
+        return ret
 
 
 __all__ = ["KPathContainer"]

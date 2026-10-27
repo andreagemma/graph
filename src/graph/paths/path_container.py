@@ -1,24 +1,29 @@
 from __future__ import annotations
 
+import copy
 from abc import ABC, abstractmethod
 from collections.abc import Generator, Hashable
 from pathlib import Path as FilePath
 from typing import Any
 
-import dill
+import geopandas as gpd
+import pandas as pd
+from shapely.geometry import MultiLineString
 
+from ..graphs.graph import Graph
+from ..utils import multiline_to_line
 from .path import Path
 
 Numeric = int | float
 
 
-class PathContainer(ABC, dict):
+class PathContainer(ABC, dict[str, Any]):
     """Abstract base class for path collections."""
 
     def __init__(self, **kwargs: Any) -> None:
         """Create an empty path container with optional metadata."""
         super().__init__()
-        self.update(**kwargs)
+        self.update(**kwargs) # type: ignore
         self["type"] = self.__class__.__name__
 
     def add_path(self, to_add: Path, **kwargs: Any) -> None:
@@ -29,7 +34,7 @@ class PathContainer(ABC, dict):
         """Merge one path or another container into this container."""
         if isinstance(to_add, Path):
             self.add_path(to_add, **kwargs)
-        elif isinstance(to_add, PathContainer):
+        elif isinstance(to_add, PathContainer): # type: ignore
             for path in to_add.all_paths(**kwargs):
                 self.add_path(path)
 
@@ -96,14 +101,38 @@ class PathContainer(ABC, dict):
 
     def save(self, filename: str | FilePath) -> None:
         """Serialize the container to ``filename`` using dill."""
+        import dill  # type: ignore
         with open(filename, "wb") as file:
-            dill.dump(self, file, dill.HIGHEST_PROTOCOL)
+            dill.dump(self, file, dill.HIGHEST_PROTOCOL) # type: ignore
 
     @staticmethod
     def load(filename: str | FilePath) -> PathContainer:
         """Load a serialized path container from ``filename``."""
+        import dill  # type: ignore
         with open(filename, "rb") as file:
-            return dill.load(file)
+            return dill.load(file) # type: ignore
+
+    def to_pandas(self, G: Graph, crs_link: str = "EPSG:4326", t: Numeric | None = None) -> pd.DataFrame | gpd.GeoDataFrame:
+        df_paths: pd.DataFrame = pd.DataFrame(path for path in self.all_paths() if t is None or path["t"] == t)
+        if df_paths.empty:
+            df_paths = gpd.GeoDataFrame(df_paths, geometry=[], crs=crs_link)
+            return df_paths
+        _link: dict[str, Any] = next(G.get_all_links())
+        for geom in ("geom", "geometry"):
+            if geom in _link:
+                df_paths[geom] = [  # type: ignore
+                    MultiLineString(
+                        [multiline_to_line(link.get(geom)) for l_idx in links if (link := G.get_link(l_idx)) is not None]  # type: ignore
+                    )
+                    for links in df_paths["links"]
+                ]
+                df_paths = gpd.GeoDataFrame(df_paths, geometry=geom, crs=crs_link)
+                return df_paths
+        return df_paths
+
+    def copy(self) -> PathContainer:
+        """Return a shallow copy of the path container."""
+        return copy.deepcopy(self)
 
 
 __all__ = ["PathContainer"]

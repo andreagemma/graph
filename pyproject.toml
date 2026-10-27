@@ -33,7 +33,8 @@ classifiers = [
 ]
 dependencies = [
   "ga-serializer",
-  "numpy>=1.24"
+  "numpy>=1.24",
+  "shapely>=2.0"
 ]
 
 [project.optional-dependencies]

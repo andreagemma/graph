@@ -10,6 +10,7 @@ machine-readable inventory is
 | ga-serializer | 0.1.3 | MIT | [andreagemma/serializer](https://github.com/andreagemma/serializer) |
 | dill | 0.4.1 | BSD 3-Clause | [PyPI](https://pypi.org/project/dill/) |
 | NumPy | 2.5.4 | BSD 3-Clause | [numpy/numpy](https://github.com/numpy/numpy) |
+| Shapely | 2.2.0 | BSD 3-Clause | [shapely/shapely](https://github.com/shapely/shapely) |
 | pytest | 9.1.1 | MIT | [pytest-dev/pytest](https://github.com/pytest-dev/pytest) |
 | pytest-cov | 7.1.0 | MIT | [pytest-dev/pytest-cov](https://github.com/pytest-dev/pytest-cov) |
 | build | 1.6.1 | MIT | [pypa/build](https://github.com/pypa/build) |
@@ -19,3 +20,8 @@ machine-readable inventory is
 
 These are the versions installed in the development environment when the
 inventory was generated; project requirements may allow other versions.
+
+Shapely's binary distribution also bundles GEOS under LGPL-2.1; its license is
+archived as `licenses/third_party/packages/shapely/LICENSE_GEOS`. On Windows,
+the Shapely distribution may bundle Microsoft Visual C++ runtime files; the
+associated notice is archived as `licenses/third_party/packages/shapely/LICENSE_win32`.

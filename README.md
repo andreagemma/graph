@@ -6,7 +6,7 @@
 
 GA Graph provides lightweight dictionary-backed graph containers, path
 collections, turn classification helpers, and a link-based time-dependent
-shortest-path router.
+shortest-path router. Geometry helpers use Shapely geometries.
 
 The PyPI distribution is named `ga-graph`; the import package is named `graph`.
 
@@ -102,6 +102,10 @@ assert path["tot_cost"] == 2
 
 The router supports optional mode fields, node costs, turn costs, and prohibited
 turn fields.
+
+The package uses Shapely for line and multiline geometry operations. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for Shapely and bundled GEOS
+license information.
 
 ## API Summary
 

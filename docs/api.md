@@ -69,7 +69,8 @@ TurnType.classify_turn(in_edge_geometry, out_edge_geometry, angles=(30, 60, 120,
 ```
 
 Provides semantic labels for straight, left, right, sharp, and U-turn
-movements. Geometries must expose a `.coords` sequence.
+movements. Geometries must expose a `.coords` sequence. Graph path geometry
+helpers accept Shapely `LineString` and `MultiLineString` geometries.
 
 ## `TimeDependentLinkBasedShortestPath`
 

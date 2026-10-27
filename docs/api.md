@@ -48,6 +48,10 @@ KPathList()
 path per `(source, target, t_start, mode)` key. `KPathList` keeps multiple
 k-ranked paths for the same key.
 
+`KPathContainer.from_pandas(...)` creates a container from a pandas dataframe.
+`PathContainer.to_pandas(...)` returns a pandas dataframe or, when link
+geometries are available, a GeoPandas `GeoDataFrame`.
+
 Main methods:
 
 - `Path.key()`

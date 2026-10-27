@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.1.7 - Unreleased
+## 0.1.8 - Unreleased
+
+- Declared pandas, GeoPandas, and dill as runtime dependencies for the dataframe
+  and serialization APIs.
+- Added Pandas and GeoPandas license texts and updated the third-party inventory.
+- Bumped package/build version from `0.1.7` to `0.1.8`.
+
+## 0.1.7
 
 - Declared Shapely as a runtime dependency for geometry-based graph utilities.
 - Added Shapely, bundled GEOS, and Windows runtime license notices and archives.

@@ -107,6 +107,9 @@ The package uses Shapely for line and multiline geometry operations. See
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for Shapely and bundled GEOS
 license information.
 
+Path containers use pandas for dataframe conversion and GeoPandas for
+geospatial dataframe output.
+
 ## API Summary
 
 - `Graph(t0=0, total_time=60, delta_t=15, **kwargs)`

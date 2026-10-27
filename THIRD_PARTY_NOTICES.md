@@ -9,7 +9,9 @@ machine-readable inventory is
 |---|---:|---|---|
 | ga-serializer | 0.1.3 | MIT | [andreagemma/serializer](https://github.com/andreagemma/serializer) |
 | dill | 0.4.1 | BSD 3-Clause | [PyPI](https://pypi.org/project/dill/) |
+| GeoPandas | 1.2.0 | BSD 3-Clause | [geopandas/geopandas](https://github.com/geopandas/geopandas) |
 | NumPy | 2.5.4 | BSD 3-Clause | [numpy/numpy](https://github.com/numpy/numpy) |
+| pandas | 3.0.6 | BSD 3-Clause | [pandas-dev/pandas](https://github.com/pandas-dev/pandas) |
 | Shapely | 2.2.0 | BSD 3-Clause | [shapely/shapely](https://github.com/shapely/shapely) |
 | pytest | 9.1.1 | MIT | [pytest-dev/pytest](https://github.com/pytest-dev/pytest) |
 | pytest-cov | 7.1.0 | MIT | [pytest-dev/pytest-cov](https://github.com/pytest-dev/pytest-cov) |
@@ -25,3 +27,6 @@ Shapely's binary distribution also bundles GEOS under LGPL-2.1; its license is
 archived as `licenses/third_party/packages/shapely/LICENSE_GEOS`. On Windows,
 the Shapely distribution may bundle Microsoft Visual C++ runtime files; the
 associated notice is archived as `licenses/third_party/packages/shapely/LICENSE_win32`.
+
+GeoPandas depends on other geospatial packages, including Pyogrio, PyProj, and
+Shapely. Their dependencies are installed through GeoPandas package metadata.

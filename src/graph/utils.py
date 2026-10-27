@@ -38,6 +38,7 @@ def make_inside_checker(time_start: int | None = None, time_end: int | None = No
     # Nella stringa vengono inseriti esclusivamente interi validati.
     return eval(f"lambda t: {expression}", {"__builtins__": {}})
 
+
 def time_index(t0: float, delta_t: float, n_intervals: int, time_value: float) -> int:
     # Internal helper: time index.
     """Internal helper: time index."""

@@ -317,5 +317,6 @@ class TimeDependentLinkBasedShortestPath:
         if isinstance(targets, Iterable) and not isinstance(targets, str | bytes):
             return set(cast(Iterable[Hashable], targets))
         return {targets}
-    
+
+
 __all__ = ["TimeDependentLinkBasedShortestPath"]

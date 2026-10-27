@@ -23,7 +23,7 @@ class PathContainer(ABC, dict[str, Any]):
     def __init__(self, **kwargs: Any) -> None:
         """Create an empty path container with optional metadata."""
         super().__init__()
-        self.update(**kwargs) # type: ignore
+        self.update(**kwargs)  # type: ignore
         self["type"] = self.__class__.__name__
 
     def add_path(self, to_add: Path, **kwargs: Any) -> None:
@@ -34,7 +34,7 @@ class PathContainer(ABC, dict[str, Any]):
         """Merge one path or another container into this container."""
         if isinstance(to_add, Path):
             self.add_path(to_add, **kwargs)
-        elif isinstance(to_add, PathContainer): # type: ignore
+        elif isinstance(to_add, PathContainer):  # type: ignore
             for path in to_add.all_paths(**kwargs):
                 self.add_path(path)
 
@@ -102,15 +102,17 @@ class PathContainer(ABC, dict[str, Any]):
     def save(self, filename: str | FilePath) -> None:
         """Serialize the container to ``filename`` using dill."""
         import dill  # type: ignore
+
         with open(filename, "wb") as file:
-            dill.dump(self, file, dill.HIGHEST_PROTOCOL) # type: ignore
+            dill.dump(self, file, dill.HIGHEST_PROTOCOL)  # type: ignore
 
     @staticmethod
     def load(filename: str | FilePath) -> PathContainer:
         """Load a serialized path container from ``filename``."""
         import dill  # type: ignore
+
         with open(filename, "rb") as file:
-            return dill.load(file) # type: ignore
+            return dill.load(file)  # type: ignore
 
     def to_pandas(self, G: Graph, crs_link: str = "EPSG:4326", t: Numeric | None = None) -> pd.DataFrame | gpd.GeoDataFrame:
         df_paths: pd.DataFrame = pd.DataFrame(path for path in self.all_paths() if t is None or path["t"] == t)

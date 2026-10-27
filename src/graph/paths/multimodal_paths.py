@@ -17,20 +17,20 @@ class MultimodalPaths(KPathContainer):
     def __init__(self, **kwargs: dict[str, Any]) -> None:
         """Create an empty k-path list."""
         super().__init__()
-        self.update(kwargs) # type: ignore
+        self.update(kwargs)  # type: ignore
         self["type"] = self.__class__.__name__
         self["paths"] = {}
 
-    def clear(self, new_paths: MultimodalPaths | None=None) -> None:
+    def clear(self, new_paths: MultimodalPaths | None = None) -> None:
         self._paths.clear()
         if new_paths is not None:
             self._paths.update(new_paths._paths)
 
     def cut_time_slice(
-        self, 
-        time_start: int | None = None, 
-        time_end: int | None = None, 
-        rebase: int | None = None, 
+        self,
+        time_start: int | None = None,
+        time_end: int | None = None,
+        rebase: int | None = None,
         inplace: bool = True,
         normalize_at: int = 1440,
         shift: bool = True,
@@ -41,20 +41,20 @@ class MultimodalPaths(KPathContainer):
         l_paths: list[Path] = []
         for path in self.all_paths():
             path = path if inplace else path.copy()
-            t=path["t"] 
+            t = path["t"]
             if is_inside(t):
                 if rebase is not None:
                     path["t_start"] += path["t_base"] - rebase + offset
                     path["t"] += offset
                     path["t_base"] = rebase
-                l_paths.append(path)                
+                l_paths.append(path)
         if rebase is not None and shift:
             min_t_start = min(path["t_start"] for path in l_paths) if l_paths else 0
             if min_t_start != 0:
                 for path in l_paths:
                     path["t_start"] -= min_t_start
                     path["t"] -= min_t_start
-        for path in l_paths:            
+        for path in l_paths:
             other.add_path(path)
         if inplace:
             self["paths"] = other["paths"]
@@ -64,7 +64,7 @@ class MultimodalPaths(KPathContainer):
 
     @property
     def _paths(self) -> dict[str, KPathList]:
-        return self["paths"] # type: ignore
+        return self["paths"]  # type: ignore
 
     @property
     def modes(self) -> list[str]:
@@ -72,12 +72,12 @@ class MultimodalPaths(KPathContainer):
 
     def add_path(self, to_add: Path, k: int | None = None, **kwargs: Any) -> None:
         """Add a path at the next or selected k position."""
-        if paths := self._paths.get(to_add.mode): # type: ignore
+        if paths := self._paths.get(to_add.mode):  # type: ignore
             paths.add_path(to_add, k=k)
         else:
             paths = KPathList()
             paths.add_path(to_add, k=k)
-            self._paths[to_add.mode] = paths # type: ignore
+            self._paths[to_add.mode] = paths  # type: ignore
 
     def get_sources(
         self,
@@ -92,10 +92,10 @@ class MultimodalPaths(KPathContainer):
                 return self._paths[mode].get_sources(target=target, t_start=t_start, mode=mode)
             return tuple()
         else:
-            ret = [] # type: ignore
+            ret = []  # type: ignore
             for paths in self._paths.values():
-                ret.extend(paths.get_sources(target=target, t_start=t_start, mode=mode)) # type: ignore
-            return tuple(ret) # type: ignore
+                ret.extend(paths.get_sources(target=target, t_start=t_start, mode=mode))  # type: ignore
+            return tuple(ret)  # type: ignore
 
     def get_targets(
         self,
@@ -110,10 +110,10 @@ class MultimodalPaths(KPathContainer):
                 return self._paths[mode].get_targets(source=source, t_start=t_start, mode=mode)
             return tuple()
         else:
-            ret = [] # type: ignore
+            ret = []  # type: ignore
             for paths in self._paths.values():
-                ret.extend(paths.get_targets(source=source, t_start=t_start, mode=mode)) # type: ignore
-            return tuple(ret) # type: ignore
+                ret.extend(paths.get_targets(source=source, t_start=t_start, mode=mode))  # type: ignore
+            return tuple(ret)  # type: ignore
 
     def get_t_starts(
         self,
@@ -128,10 +128,10 @@ class MultimodalPaths(KPathContainer):
                 return self._paths[mode].get_t_starts(source=source, target=target, mode=mode)
             return tuple()
         else:
-            ret = [] # type: ignore
+            ret = []  # type: ignore
             for paths in self._paths.values():
-                ret.extend(paths.get_t_starts(source=source, target=target, mode=mode)) # type: ignore
-            return tuple(ret) # type: ignore
+                ret.extend(paths.get_t_starts(source=source, target=target, mode=mode))  # type: ignore
+            return tuple(ret)  # type: ignore
 
     def get_ts(
         self,
@@ -146,11 +146,11 @@ class MultimodalPaths(KPathContainer):
                 return self._paths[mode].get_ts(source=source, target=target, mode=mode)
             return tuple()
         else:
-            ret = [] # type: ignore
+            ret = []  # type: ignore
             for paths in self._paths.values():
-                ret.extend(paths.get_ts(source=source, target=target, mode=mode)) # type: ignore
-            return tuple(ret) # type: ignore
-        
+                ret.extend(paths.get_ts(source=source, target=target, mode=mode))  # type: ignore
+            return tuple(ret)  # type: ignore
+
     def get_modes(
         self,
         source: Hashable | None = None,
@@ -227,7 +227,7 @@ class MultimodalPaths(KPathContainer):
         if len(self._paths) == 0:
             return True
         return all(kpaths.empty for kpaths in self._paths.values())
-    
+
     def n_paths(self, **kwargs: Any) -> int:
         """Count all non-empty stored paths."""
         s = 0
@@ -245,7 +245,7 @@ class MultimodalPaths(KPathContainer):
     def k_paths(self, **kwargs: Any) -> int:
         """Return the maximum number of k slots stored for any key."""
         del kwargs
-        return max((len(paths) for kpaths in self._paths.values() for paths in kpaths.values()), default=0) # type: ignore
+        return max((len(paths) for kpaths in self._paths.values() for paths in kpaths.values()), default=0)  # type: ignore
 
     def get_by_mode(self, mode: str, create_if_missing: bool = False) -> KPathList | None:
         """Return all available mode labels."""

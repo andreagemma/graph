@@ -98,13 +98,13 @@ class KPathList(KPathContainer):
                 [
                     p["t"]
                     for p in self.all_paths()
-                    if (source is None or p["source"] == source) and
-                      (target is None or p["target"] == target) and 
-                      (mode is None or p["mode"] == mode)
+                    if (source is None or p["source"] == source)
+                    and (target is None or p["target"] == target)
+                    and (mode is None or p["mode"] == mode)
                 ]
             )
         )
-    
+
     def get_modes(
         self,
         source: Hashable | None = None,
@@ -167,13 +167,12 @@ class KPathList(KPathContainer):
     def all_kpaths(self, **kwargs: Any) -> Generator[tuple[tuple[Hashable, Hashable, Numeric, str | None], list[Path]]]:
         yield from self["paths"].items()  # type: ignore
 
-
     @property
     def empty(self) -> bool:
         if len(self._paths) == 0:
             return True
         return all(len(paths) == 0 for paths in self._paths.values())
-    
+
     def n_paths(self, **kwargs: Any) -> int:
         n = 0
         for paths in self._paths.values():

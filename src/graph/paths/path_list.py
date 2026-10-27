@@ -15,7 +15,7 @@ class PathList(PathContainer):
     def __init__(self, **kwargs: Any) -> None:
         """Create an empty path list."""
         super().__init__()
-        self.update(kwargs) # type: ignore
+        self.update(kwargs)  # type: ignore
         self["class_name"] = self.__class__.__name__
         self["paths"] = {}
 
@@ -36,10 +36,10 @@ class PathList(PathContainer):
         return tuple(
             dict.fromkeys(
                 source
-                for source, candidate_target, candidate_time, candidate_mode in self["paths"] # type: ignore
+                for source, candidate_target, candidate_time, candidate_mode in self["paths"]  # type: ignore
                 if (target is None or candidate_target == target)
                 and (t_start is None or candidate_time == t_start)
-                and (mode is None or candidate_mode == mode) # type: ignore
+                and (mode is None or candidate_mode == mode)  # type: ignore
             )
         )
 
@@ -55,10 +55,10 @@ class PathList(PathContainer):
         return tuple(
             dict.fromkeys(
                 target
-                for candidate_source, target, candidate_time, candidate_mode in self["paths"] # type: ignore
+                for candidate_source, target, candidate_time, candidate_mode in self["paths"]  # type: ignore
                 if (source is None or candidate_source == source)
                 and (t_start is None or candidate_time == t_start)
-                and (mode is None or candidate_mode == mode) # type: ignore
+                and (mode is None or candidate_mode == mode)  # type: ignore
             )
         )
 
@@ -74,10 +74,10 @@ class PathList(PathContainer):
         return tuple(
             dict.fromkeys(
                 t_start
-                for candidate_source, candidate_target, t_start, candidate_mode in self["paths"] # type: ignore
+                for candidate_source, candidate_target, t_start, candidate_mode in self["paths"]  # type: ignore
                 if (source is None or candidate_source == source)
                 and (target is None or candidate_target == target)
-                and (mode is None or candidate_mode == mode) # type: ignore
+                and (mode is None or candidate_mode == mode)  # type: ignore
             )
         )
 
@@ -93,10 +93,10 @@ class PathList(PathContainer):
         return tuple(
             dict.fromkeys(
                 mode
-                for candidate_source, candidate_target, candidate_time, mode in self["paths"] # type: ignore
+                for candidate_source, candidate_target, candidate_time, mode in self["paths"]  # type: ignore
                 if (source is None or candidate_source == source)
                 and (target is None or candidate_target == target)
-                and (t_start is None or candidate_time == t_start) # type: ignore
+                and (t_start is None or candidate_time == t_start)  # type: ignore
             )
         )
 
@@ -110,17 +110,17 @@ class PathList(PathContainer):
     ) -> Path | None:
         """Return one path by key, or ``None`` when missing."""
         del kwargs
-        return self["paths"].get((source, target, t_start, mode)) # type: ignore
+        return self["paths"].get((source, target, t_start, mode))  # type: ignore
 
     def all_paths(self, **kwargs: Any) -> Generator[Path, None, None]:
         """Yield all paths in insertion order."""
         del kwargs
-        yield from self["paths"].values() # type: ignore
+        yield from self["paths"].values()  # type: ignore
 
     def n_paths(self, **kwargs: Any) -> int:
         """Count paths in the list."""
         del kwargs
-        return len(self["paths"]) # type: ignore
+        return len(self["paths"])  # type: ignore
 
 
 __all__ = ["PathList"]
